@@ -4,6 +4,7 @@ import "./globals.css";
 import { SidebarProvider } from "@/components/sidebar-provider";
 import Sidebar from "@/components/sidebar";
 import Header from "@/components/header";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,6 +32,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         cz-shortcut-listen="true"
       >
+        <Toaster/>
         <main className="flex flex-col min-h-screen bg-secondary">
           <SidebarProvider>
             <div className="flex min-h-screen">
