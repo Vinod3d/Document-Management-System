@@ -15,6 +15,7 @@ import {
 import { FileText, Home, Search, Upload, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 const routes = [
   {
@@ -47,6 +48,7 @@ const routes = [
 export default function Header() {
   const pathname = usePathname();
   const { toggle } = useSidebar();
+  const { data: session } = useSession(); 
   //   const { setTheme } = useTheme()
 
   return (
@@ -98,26 +100,35 @@ export default function Header() {
             <DropdownMenuItem>System</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+
+        {/* profile and login register */}
+        {session ? (
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <Avatar className="h-8 w-8">
-                <AvatarImage
-                  src="/placeholder.svg?height=32&width=32"
-                  alt="User"
-                />
-                <AvatarFallback>U</AvatarFallback>
-              </Avatar>
-            </Button>
+          <DropdownMenuTrigger>
+            <Avatar>
+              <AvatarImage src={session.user?.image || "/default-avatar.png"} />
+              <AvatarFallback>U</AvatarFallback>
+            </Avatar>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem>Profile</DropdownMenuItem>
-            <DropdownMenuItem>Settings</DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/auth/login">Logout</Link>
+          <DropdownMenuContent>
+            <DropdownMenuItem>
+              <Link href="/profile">Profile</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <Link href="/api/auth/signout">Logout</Link>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+      ) : (
+        <div className="flex gap-2">
+          <Link href="/auth/login">
+            <Button variant="outline" className="cursor-pointer">Login</Button>
+          </Link>
+          <Link href="/auth/register">
+            <Button className="cursor-pointer">Register</Button>
+          </Link>
+        </div>
+      )}
       </div>
     </header>
   );

@@ -163,9 +163,9 @@ const UploadPage = () => {
     toast.success("Upload Successful", {
       description: "Your files have been uploaded successfully.",
       style: {
-        backgroundColor: "#2da158", // Dark green background
-        color: "white", // White text
-        border: "1px solid #065F46", // Even darker green border
+        backgroundColor: "#2da158",
+        color: "white",
+        border: "1px solid #065F46",
         fontWeight: "bold",
       },
     });
