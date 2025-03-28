@@ -13,17 +13,16 @@ import { toast } from "sonner"
 
 export default function LoginPage() {
   const [step, setStep] = useState<"phone" | "otp">("phone")
-  const [phoneNumber, setPhoneNumber] = useState("")
+  const [isEmail, setEmail] = useState("")
   const [otp, setOtp] = useState(["", "", "", "", "", ""])
-  const [showPassword, setShowPassword] = useState(false)
 
   const router = useRouter()
 
-  const handlePhoneSubmit = (e: React.FormEvent) => {
+  const handleEmailSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     // In a real app, this would call an API to send OTP
     toast.success( "OTP Sent", {
-      description: `A verification code has been sent to ${phoneNumber}`,
+      description: `A verification code has been sent to`,
       style: {
         backgroundColor: "#2da158",
         color: "white",
@@ -80,14 +79,14 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent>
           {step === "phone" ? (
-            <form onSubmit={handlePhoneSubmit} className="space-y-4">
+            <form onSubmit={handleEmailSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
+                <Label htmlFor="email">Email</Label>
                 <Input
-                  id="phone"
-                  placeholder="Enter your phone number"
+                  id="email"
+                  placeholder="Enter your email"
                   value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
                 />
               </div>
