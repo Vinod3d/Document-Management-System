@@ -1,8 +1,7 @@
 import NextAuth, { NextAuthOptions, User } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { prisma } from "@/lib/prisma";
-import { JWT } from "next-auth/jwt";
-import { Session } from "next-auth";
+
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -22,7 +21,7 @@ export const authOptions: NextAuthOptions = {
         // Find user by email
         const user = await prisma.user.findUnique({
           where: { email },
-          include: { otp: true }// Fix TypeScript error
+          include: { otp: true }, // Ensure `otp` is defined in your Prisma schema
         });
 
         if (!user) {
@@ -57,16 +56,21 @@ export const authOptions: NextAuthOptions = {
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   callbacks: {
-    async jwt({ token, user }: { token: JWT; user?: User }) {
+    async jwt({ token, user }) {
       if (user) {
-        token.user = user;
+        return { ...token, ...user }; // Store user data in token
       }
       return token;
     },
-    async session({ session, token }: { session: Session; token: JWT }) {
-      session.user = token.user as User;
+    async session({ session, token }) {
+      session.user = {
+        id: token.id as string,
+        name: token.name as string,
+        email: token.email as string,
+        image: token.image as string,
+      };
       return session;
-    },
+    }
   },
   pages: {
     signIn: "/auth/login",

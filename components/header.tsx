@@ -45,11 +45,21 @@ const routes = [
   },
 ];
 
+export type AuthUser = {
+  id: string;
+  name?: string | null;
+  email: string;
+  image?: string | null;
+};
+
 export default function Header() {
   const pathname = usePathname();
   const { toggle } = useSidebar();
   const { data: session } = useSession(); 
+  const user = session?.user as AuthUser | undefined;
   //   const { setTheme } = useTheme()
+
+  console.log("session user", user)
 
   return (
     <header className="sticky top-0 z-30 flex justify-between h-16 items-center gap-4 border-b bg-background px-4 md:px-6">

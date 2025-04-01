@@ -1,8 +1,7 @@
 "use client"
 
 import type React from "react"
-
-import { useState } from "react"
+import { useState, useTransition } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -10,28 +9,44 @@ import { Label } from "@/components/ui/label"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { toast } from "sonner"
+import { sendOTP } from "@/actions/sendOTP"
+import { verifyOTP } from "@/actions/verifyOTP"
+
+interface errorType {
+  error: {
+    message: string;
+  };
+}
 
 export default function LoginPage() {
-  const [step, setStep] = useState<"phone" | "otp">("phone")
-  const [isEmail, setEmail] = useState("")
+  const [step, setStep] = useState<"email" | "otp">("email")
+  const [email, setEmail] = useState("")
   const [otp, setOtp] = useState(["", "", "", "", "", ""])
-
+  const [isPending, startTransition] = useTransition();
   const router = useRouter()
 
   const handleEmailSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    // In a real app, this would call an API to send OTP
-    toast.success( "OTP Sent", {
-      description: `A verification code has been sent to`,
-      style: {
-        backgroundColor: "#2da158",
-        color: "white",
-        border: "1px solid #065F46",
-        fontWeight: "bold",
-      },
-    })
-    setStep("otp")
-  }
+    e.preventDefault();
+    startTransition(async () => {
+      try {
+        await sendOTP(email);
+        toast.success("OTP Sent", {
+          description: `A verification code has been sent to ${email}.`,
+          style: {
+            backgroundColor: "#2da158",
+            color: "white",
+            border: "1px solid #065F46",
+            fontWeight: "bold",
+          },
+        });
+        setStep("otp");
+      } catch (error) {
+        const errorObj = error as errorType;
+        const errorMessage = errorObj.error?.message || "Something went wrong";
+        toast.error(`Error sending OTP: ${errorMessage}`);
+      }
+    });
+  };
 
   const handleOtpChange = (index: number, value: string) => {
     if (value.length > 1) {
@@ -42,7 +57,6 @@ export default function LoginPage() {
     newOtp[index] = value
     setOtp(newOtp)
 
-    // Auto-focus next input
     if (value && index < 5) {
       const nextInput = document.getElementById(`otp-${index + 1}`)
       if (nextInput) {
@@ -53,17 +67,26 @@ export default function LoginPage() {
 
   const handleOtpSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // In a real app, this would verify the OTP with an API
-    toast.success( "Login Successful", {
-      description: "You have been logged in successfully",
-      style: {
-        backgroundColor: "#2da158",
-        color: "white",
-        border: "1px solid #065F46",
-        fontWeight: "bold",
-      },
+    startTransition(async()=>{
+      try {
+        await verifyOTP(email, otp.join(''))
+        toast.success( "Login Successful", {
+          description: "You have been logged in successfully",
+          style: {
+            backgroundColor: "#2da158",
+            color: "white",
+            border: "1px solid #065F46",
+            fontWeight: "bold",
+          },
+        })
+        router.push("/")
+      } catch (error) {
+        const errorObj = error as errorType;
+        const errorMessage = errorObj.error?.message || "Something went wrong";
+        toast.error(`Error Verifying OTP,${errorMessage} `);
+      }
     })
-    router.push("/")
+   
   }
 
   return (
@@ -72,26 +95,26 @@ export default function LoginPage() {
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">Login</CardTitle>
           <CardDescription>
-            {step === "phone"
-              ? "Enter your phone number to receive a verification code"
-              : "Enter the verification code sent to your phone"}
+            {step === "email"
+              ? "Enter your Email to receive a verification code"
+              : "Enter the verification code sent to your Email"}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {step === "phone" ? (
+          {step === "email" ? (
             <form onSubmit={handleEmailSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   placeholder="Enter your email"
-                  value={phoneNumber}
+                  value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
                 />
               </div>
               <Button type="submit" className="w-full">
-                Send Verification Code
+                {isPending ? "Sending..." : "Send Verification Code"}
               </Button>
             </form>
           ) : (
@@ -115,15 +138,15 @@ export default function LoginPage() {
                 </div>
               </div>
               <Button type="submit" className="w-full">
-                Verify & Login
+                {isPending ? "Verifying..." : "Verify & Login"}
               </Button>
             </form>
           )}
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
           {step === "otp" && (
-            <Button variant="link" onClick={() => setStep("phone")}>
-              Change phone number
+            <Button variant="link" onClick={() => setStep("email")}>
+              Change Your Email Id
             </Button>
           )}
           <div className="text-sm text-muted-foreground">
